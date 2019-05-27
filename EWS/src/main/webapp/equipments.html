@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="layui3.4/css/layui.css"/>
+    <script type="text/javascript" src="jquery3.4.1/jquery-3.4.1.js"></script>
+    <script type="text/javascript" src="layui3.4/layui.all.js"></script>
+    <script type="text/javascript" src="echarts/echarts.min.js"></script>
+    <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            loadEquipmentsData();
+        });
+        //修改设备信息操作
+        function openEuipmentsInfoEdit(eq_id, eq_name, place, numbers) {
+            /*            sessionStorage.setItem("id",id);
+                        sessionStorage.setItem("uname",uname);
+                        sessionStorage.setItem("role",role);
+                        sessionStorage.setItem("email",email);*/
+            layer.open({
+                type: 1,
+                title: "修改设备信息",
+                btn: ["确认修改", "取消"],
+                //这里也没改我日
+                content: $("#editUserInfo").html(),
+                area: ['400px', '350px'],
+                yes: function (index) {
+                    //这里还没做处修改操作
+                    layer.msg("test");
+                },
+                success: function () {
+
+                    layui.use("form",function () {
+                        layui.form.render();
+                    });
+                    $("#").val(eq_name);
+                    $("#lbl_title").html("修改设备信息");
+                }
+
+            });
+            //给文本框赋值
+
+
+        }
+        //删除设备信息操作
+        function deleteEquipmentsInfoById(eq_id) {
+            layer.confirm("是否真的要删除本记录?", {icon: 3, title: "警告"}, function (index) {
+                layer.closeAll();
+                $.ajax({
+                    url: "user/deleteEquipmentsInfoById.do",
+                    method: "post",
+                    data: {"id": eq_id},
+                    success: function (result) {
+                        //alert(result);
+                        if (JSON.parse(result) == "success") {
+                            //  $("#userInfoList").reload();
+
+                            layer.msg("删除成功!");
+                            layui.table.reload("equipmentsInfoTable");
+                        } else {
+                            layer.msg("删除失败!");
+                        }
+
+                    },
+                    error: function () {
+                        layui.msg("请求服务器失败!");
+                    }
+                });
+
+            });
+        }
+
+
+        function loadEquipmentsData() {
+            var table = layui.table;
+            var util = layui.util;
+            table.render({
+                toolbar: "#toolbar",
+                elem: "#userInfoList",
+                url: "user/findAllEquipments.do",
+                title: "设备信息表",
+                id: "equipmentsInfoTable",
+                limit: 8,
+                page: true,
+                event: true,
+                size: "md",
+                limits: [10, 20, 50, 100],
+                loading: true,
+                cols: [
+                    [{
+                        field: "eq_id",
+                        title: "ID",
+                        type: "checkbox"
+                    },
+                        {
+                            field: "eq_id",
+                            title: "ID",
+                            type: "numbers",
+                            width: 20
+                        },
+                        {
+                            field: "eq_name",
+                            title: "设备名",
+                            align: "center",
+                            width: 100
+                        },
+                        {
+                            field: "PlaceOfOrigin",
+                            title: "产地",
+                            align: "center",
+                            width: 100,
+
+                        },
+                        {
+                            field: "numbers",
+                            title: "数量",
+                            align: "center",
+                            width: 150
+                        },
+                        {
+                            field: "checkinTime",
+                            title: "注册时间",
+                            align: "center",
+                            width: 180,
+                            templet: function (row) {
+                                return util.toDateString(row.checkinTime, "yyyy-MM-dd HH:mm:ss");
+                            }
+                        },
+                        {
+                            field: "lastCheckTime",
+                            title: "最后一次检查时间",
+                            align: "center",
+                            width: 180,
+                            templet: function (row) {
+                                return util.toDateString(row.lastCheckinTime, "yyyy-MM-dd HH:mm:ss");
+                            }
+                        },
+                        {
+                            field: "id",
+                            title: "操作",
+                            align: "center",
+                            width: 100,
+                            templet: function (row) {
+                                /* var arr = new Array();
+                                arr[0] = row.id;
+                                arr[1] = row.uname;
+                                arr[2] = row.email;
+                                arr[3] = row.role;*/
+                                var edit = '<a href="javascript:openUserInfoEdit(' + row.eq_id + ",'" + row.eq_name + "','" + row.PlaceOfOrigin + "','" + row.numbers + '\');"   title="编辑">' +
+                                    "<span style='font-size: 25px;color:blue' class='layui-icon layui-icon-util'></span></a>"
+                                var del = '<a href="javaScript:deleteUserInfoById(' + row.eq_id + ')"  title="删除">' +
+                                    "<span style='font-size: 25px;color: red' class='layui-icon layui-icon-delete'></span></a>"
+                                return edit + "|" + del;
+                            }
+                        }
+                    ]
+                ]
+            });
+            layui.table.on("toolbar(userTable)", function (rs) {
+                var event = rs.event;
+                if (event == "add") {
+                    layer.open({
+                        type: 1,
+                        title: "添加用户信息",
+                        btn: ["确认添加", "取消"],
+                        content: $("#editEquipmentsInfo").html(),
+                        area: ['400px', '350px'],
+                        yes: function (index) {
+                            layer.msg("test");
+                        },
+                        success:function () {
+                            $("#lbl_title").html("添加设备信息");
+                            layui.use("form",function () {
+                                layui.form.render();
+                            })
+                        }
+                    });
+                }
+                if (event == "delete") {
+                    var list = layui.table.checkStatus("equipmentsInfoTable").data;
+                    if (list.length == 0) {
+                        layer.msg("请选择一条数据");
+                    }else
+                    {
+                        layer.confirm("是否删除选中的数据?",{btn:["确定","取消"]},function () {
+                            layer.closeAll();
+                            var arr=new Array();
+                            $.each(list,function (index,row) {
+                                arr[index]=row.id;
+                            });
+                            $.ajax({
+                                url:"user/deleteEquipmentsInfoById.do",
+                                data:{"id":arr.join(",").toString()},
+                                method:"post",
+                                success:function (result) {
+                                    if(JSON.parse(result) == "success"){
+                                        layer.msg("删除成功！");
+                                        layui.table.reload("equipmentsInfoTable");
+                                    }
+                                    else
+                                        layer.msg("删除失败！");
+
+                                },
+                                error:function () {
+                                    layer.msg("请求服务器失败?");
+                                }
+                            });
+                        })
+                    }
+                }
+            });
+
+        }
+
+
+
+    </script>
+</head>
+<body>
+
+<div class="layui-elem-quote">
+    设备信息管理功能
+</div>
+<script type="text/html" id="toolbar">
+    <button class="layui-btn layui-btn-danger" lay-event="add"><i class="layui-icon">&#xe640</i> 添加设备</button>
+    <a href="javascript:void(0)" class="layui-btn layui-btn-warm" lay-event="delete"><span
+            class="layui-icon layui-icon-delete"></span> 删除设备</a>
+    <input class="layui-input-block" type="text" placeholder="请输入要查询的信息">
+    <a href="" class="layui-btn layui-btn-warm">
+        <span class="layui-icon layui-icon-search"></span></a>
+</script>
+<table class="layui-table" id="equipmentsInfoList" lay-filter="equipmentsTable">
+</table>
+<div align="center" id="editEquipmentsInfo" style="display: none;width: 300px">
+    <br>
+    <center>
+        <h2 id="lbl_title">修改设备信息</h2>
+    </center>
+    <hr>
+    <form class="layui-form" id="form1">
+        <input type="hidden" id="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">设备名</label>
+            <div class="layui-input-inline">
+                <input type="text" id="eq_ame" name="eq_name" lay-verify="eq_name" autocomplete="off"
+                       placeholder="请输入设备名" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">产地</label>
+            <div class="layui-input-inline">
+                <input type="text" id="PlaceOfOrigin" name="PlaceOfOrigin" lay-verify="PlaceOfOrigin" autocomplete="off"
+                       placeholder="请输入产地" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">数量</label>
+            <div class="layui-input-inline">
+                <input type="text" id="numbers" name="numbers" lay-verify="numbers" autocomplete="off"
+                       placeholder="请输入数量" class="layui-input">
+                <!--       <select id="role"  lay-verify="role" autocomplete="off">
+                           <option value="admin">管理员</option>
+                           <option value="employee">职员</option>
+                           <option value="checker">检修员</option>
+                       </select>-->
+            </div>
+        </div>
+    </form>
+</div>
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="equipments">
+    <select id="findAllEquipments" resultType="map">
+         select * from equipments limit #{page},#{pageSize}
+    </select>
+    <select id="findEquipmentsCount" resultType="map">
+         SELECT count(*) as `count` from equipments;
+    </select>
+    <delete id="deleteEquimentsInfoById" parameterType="int">
+        delete from equiments where eq_id=#{eq_id}
+    </delete>
+    <update id="updateCheckTime" parameterType="string">
+        update equipments set lastCheckTime=now() where eq_name=#{eq_name}
+    </update>
+</mapper>
